@@ -1,0 +1,64 @@
+*{
+	margin: 0;
+	padding: 0;
+	font-family: Arial;
+}
+body{
+	background-color: #99aaff;
+}
+canvas{
+	/*margin-top: 20px;*/
+	margin-bottom: 0px;
+	background-color: grey;
+	border-left: 5px solid black;
+	border-bottom: 5px solid black;
+}
+button{
+	width: 300px;
+	height: 30px;
+	background-color: green;
+	color:yellow;
+}
+input{
+	margin: 10px;
+	width: 40px;
+	height: 30px;
+}
+p{
+	text-align: center;
+}
+
+.main{
+	position: absolute;
+	left:0px;
+	top: 0px;
+	width:500px;
+	margin-left: 100px;
+	margin-top: 20px;
+	float: left;
+}
+.graph{
+	position: absolute;
+	left:0px;
+	top:475px;
+	margin: 0px;
+	padding-top: 0px;
+}
+
+.point{
+	position:absolute;
+	width: 10px;
+	height: 10px;
+	background-color: blue;
+	border-radius: 100%;
+	color: yellow;
+}
+.point:hover{
+	background-color: red;
+	border-radius: 100%;
+}
+#editPoint{
+	position: relative;
+	background-color: rgba(255,255,55,0.7);
+	border-radius: 100%;
+}
