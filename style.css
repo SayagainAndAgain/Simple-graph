@@ -6,15 +6,15 @@
 body{
 	background-color: #99aaff;
 }
+
 canvas{
-	/*margin-top: 20px;*/
 	margin-bottom: 0px;
 	background-color: grey;
 	border-left: 5px solid black;
 	border-bottom: 5px solid black;
 }
 button{
-	width: 300px;
+	width: 80%;
 	height: 30px;
 	background-color: green;
 	color:yellow;
@@ -27,21 +27,28 @@ input{
 p{
 	text-align: center;
 }
-
+canvas{
+	width: 100%;
+}
 .main{
-	position: absolute;
-	left:0px;
-	top: 0px;
-	width:500px;
-	margin-left: 100px;
-	margin-top: 20px;
+	width: 70%;
+    margin: 0 auto;
+    margin-top: 20px;
+}
+.canvas{
 	float: left;
+	width: 65%;
+}
+.canvas2{
+	width:100%;
 }
 .graph{
-	position: absolute;
+	position: relative;
+	display: inline-block;
+	width: 100%;
 	left:0px;
-	top:475px;
-	margin: 0px;
+	top:0px;
+	margin: 0px auto;
 	padding-top: 0px;
 }
 
@@ -61,4 +68,39 @@ p{
 	position: relative;
 	background-color: rgba(255,255,55,0.7);
 	border-radius: 100%;
+}
+.data{
+	float: right;
+	width: 33%;
+	margin: 0 auto;
+}
+
+
+@media (max-width: 1400px)  {
+	.main{
+		width: 86%;
+	}
+}
+@media (max-width: 1000px)  {
+	button{
+		font-size: 11px;
+	}
+	.main{
+		width: 96%;
+	}
+}
+@media (max-width: 700px)  {
+	.data{
+		float: none;
+		width: 100%;
+	}
+	.canvas{
+		width: 100%;
+	}
+	.main{
+		width: 80%;
+	}
+	button{
+		font-size: 14px;
+	}
 }
