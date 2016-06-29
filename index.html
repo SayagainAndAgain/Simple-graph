@@ -9,26 +9,24 @@
 <body>
 <div class="main">
 	<div class="canvas">
-		<div class="canvas2">
-			<canvas width="500" height="500" id="canvas"></canvas>
-		</div>
+		<canvas width="500" height="500" id="canvas"></canvas>
 		<div class="graph">
 			<div class="point" id="editPoint" style="left:0px; top: 0px;z-index: 1500"></div>
 		</div>
-		<label style="position: relative;top:-913px;left:-20px;color:yellow" id="labelY">Y</label>
-		<!-- <div style="position: relative;top:-932px;left:-8px;width: 0;  height: 0; 
+		<label style="position: relative;top:-513px;left:-20px;color:yellow">Y</label>
+		<div style="position: relative;top:-532px;left:-8px;width: 0;  height: 0; 
   border-left: 10px solid transparent;  border-right: 10px solid transparent;  
-  border-bottom: 10px solid black;" id="arrowY">
-  </div> -->
-  		<div style="position: relative;top:-60px;left:860px;width: 0;  height: 0;color:yellow;" 
-  id="labelX">X</div>
-<!-- border-left: 10px solid black;  border-top: 10px solid transparent;  
-  border-bottom: 10px solid transparent;"-->
+  border-bottom: 10px solid black;">
+  </div>
+  		<div style="position: relative;top:-44px;left:500px;width: 0;  height: 0; 
+  border-left: 10px solid black;  border-top: 10px solid transparent;  
+  border-bottom: 10px solid transparent;color:yellow">X</div>
+
 		
 	</div>
 	<div class="data">
-		<p>Введіть координату X:<input type="number" min="0" max="500" value="0"id="inputX"></p>
-		<p>Введіть координату Y:<input type="number" min="0" max="500" value="0"id="inputY"></p>
+		<p>Введіть координату X (від 0 до 500):<input type="number" min="0" max="500" value="0"id="inputX"></p>
+		<p>Введіть координату Y (від 0 до 500):<input type="number" min="0" max="500" value="0"id="inputY"></p>
 		<p><button id="addButton">Додати точку </button></p>
 		<p><button id="addRandomButton">Додати випадкову точку </button></p>
 

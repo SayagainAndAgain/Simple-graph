@@ -1,10 +1,7 @@
 var zeroX;
 var zeroY;
 var points=[];
-var maxNumber=500;
-var widthGraph=500;
 (function(){
-	var body=document.body;
 	var canvas=document.getElementById('canvas');
 	var ctx = canvas.getContext("2d");
 	var main=document.getElementsByClassName('main')[0];
@@ -14,11 +11,6 @@ var widthGraph=500;
 	var inputY=document.getElementById('inputY');
 	var button=document.getElementById('addButton');
 	var randomButton=document.getElementById('addRandomButton');
-	window.addEventListener('resize',function(){
-		redrawPoint();
-		editPointMove();
-		arrowsPositions();
-	});
 	inputX.addEventListener('input',editPointMove);
 	inputY.addEventListener('input',editPointMove);
 	button.addEventListener('click',addPoint);
@@ -38,33 +30,18 @@ var widthGraph=500;
 	});
 	
 	function editPointMove(){
-		var width=document.getElementsByClassName('canvas2')[0].offsetWidth;
-		editPoint.style.left=parseInt(inputX.value)*(width/maxNumber)-1+"px";
-		editPoint.style.top=-parseInt(inputY.value)*(width/maxNumber)-12+"px";
+		if(inputX.value>500){inputX.value=500;}
+		if(inputY.value>500){inputY.value=500;}
+		editPoint.style.left=inputX.value+"px";
+		editPoint.style.top=-inputY.value+20+"px";
 		editPoint.innerHTML='<br>'+inputX.value+':'+inputY.value;
 	}
 	function addPoint(){
-		if(parseInt(inputX.value)>maxNumber) {
-			maxNumber=inputX.value;
-			inputX.max=maxNumber;
-			inputY.max=maxNumber;
-			redrawPoint();
-		}
-		if(parseInt(inputY.value)>maxNumber) {
-			maxNumber=inputY.value;
-			inputX.max=maxNumber;
-			inputY.max=maxNumber;
-			redrawPoint();
-		}
 		points.push({X:inputX.value,Y:inputY.value});
 		var div=document.createElement('div');
 		div.className='point';
 		div.title=inputX.value+' : '+inputY.value;
-		var width=document.getElementsByClassName('canvas2')[0].offsetWidth;
-		console.log(width);
-		var tempLeft=inputX.value*(width/maxNumber);
-		var tempTop=inputY.value*(width/maxNumber);
-		div.style='left:'+(+tempLeft-1)+'px; top: '+(-tempTop-12)+'px;';
+		div.style='left:'+(+inputX.value)+'px; top: '+(-inputY.value+20)+'px;';
 		graph.appendChild(div);
 		editPointMove();
 		inputX.focus();
@@ -72,8 +49,8 @@ var widthGraph=500;
 		drawLine();
 	}
 	function addRandomPoint(){
-		var randomeX=Math.round(Math.random()*maxNumber);
-		var randomeY=Math.round(Math.random()*maxNumber);
+		var randomeX=Math.round(Math.random()*500);
+		var randomeY=Math.round(Math.random()*500);
 		inputX.value=randomeX;
 		inputY.value=randomeY;
 		editPointMove();
@@ -81,60 +58,21 @@ var widthGraph=500;
 	}
 	function drawLine(){
 		if(points.length>1){
-			var width=ctx.canvas.width;
 			ctx.beginPath();
 			ctx.strokeStyle='lightblue';
-			ctx.lineWidth=1;
+			ctx.lineWidth=3;
 			var width=ctx.canvas.width;
-			var x1=points[points.length-2].X*(width/maxNumber);
-			var y1=width-points[points.length-2].Y*(width/maxNumber);
-			var x2=points[points.length-1].X*(width/maxNumber);
-			var y2=width-points[points.length-1].Y*(width/maxNumber);
+			var x1=points[points.length-2].X;
+			var y1=width-points[points.length-2].Y;
+			var x2=points[points.length-1].X;
+			var y2=width-points[points.length-1].Y;
 		    ctx.moveTo(x1,y1);
 		    ctx.lineTo(x2,y2);
 		    ctx.stroke();
 		}
 	}
-	function redrawPoint(){
-		var tempPoint=document.getElementsByClassName('point');
-		var width=document.getElementsByClassName('canvas2')[0].offsetWidth;
-		ctx.clearRect(0, 0, width, width);
-		ctx.beginPath();
-		ctx.strokeStyle='lightblue';
-		ctx.lineWidth=1;
-		for (var i = 0; i < tempPoint.length; i++) {
-			var div=tempPoint[i];
-			var tempTitle=div.title.split(' : ');
-			var tempLeft=parseInt(tempTitle[0])*(width/maxNumber);
-			var tempTop=parseInt(tempTitle[1])*(width/maxNumber);
-			div.style='left:'+(+tempLeft-1)+'px; top: '+(-tempTop-12)+'px;';
-			if(i>1){
-				var div2=tempPoint[i-1];
-				var tempTitle2=div2.title.split(' : ');
-				var ctxWidth=ctx.canvas.width;
-				var tempLeft2=parseInt(tempTitle2[0])*(ctxWidth/maxNumber);
-				var tempTop2=parseInt(tempTitle2[1])*(ctxWidth/maxNumber);
-				var x1=tempLeft2;
-				var y1=ctxWidth-tempTop2;
-				var x2=parseInt(tempTitle[0])*(ctxWidth/maxNumber);;
-				var y2=ctxWidth-parseInt(tempTitle[1])*(ctxWidth/maxNumber);
-			    ctx.moveTo(x1,y1);
-			    ctx.lineTo(x2,y2);
-			}
-		}
-		ctx.stroke();
-	}
-	function arrowsPositions(){
-		var width=document.getElementsByClassName('canvas2')[0].offsetWidth;
-		var labelY=document.getElementById('labelY');
-		labelY.style.top=-width-47+"px";
-		// var arrowY=document.getElementById('arrowY');
-		// arrowY.style.top=-width-66+"px";
-		var labelX=document.getElementById('labelX');
-		labelX.style.left=width-15+"px";
-	}
+
 	editPointMove();
 	inputX.focus();
 	inputX.select();
-	arrowsPositions();
 })();
