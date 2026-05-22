@@ -1,40 +1,166 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
-	<meta charset="UTF-8">
-	<title>First HTML</title>
-	<link rel="stylesheet" href="style.css">
-	
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Графік точок - Старий/Новий варіант</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .old-version { display: block; }
+        .new-version { display: none; }
+        body.old-active .old-version { display: block; animation: fadeIn 0.5s ease; }
+        body.old-active .new-version { display: none; }
+        body.new-active .old-version { display: none; }
+        body.new-active .new-version { display: block; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .version-switcher { position: fixed; top: 20px; right: 20px; z-index: 10000; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 8px; border-radius: 50px; box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4); display: flex; align-items: center; gap: 10px; }
+        .version-switcher span { color: white; font-family: 'Segoe UI', sans-serif; font-size: 14px; font-weight: 600; padding: 0 10px; }
+        .switch-container { position: relative; width: 70px; height: 36px; }
+        .switch-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255, 255, 255, 0.3); transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); border-radius: 36px; overflow: hidden; }
+        .switch-slider:before { position: absolute; content: ""; height: 28px; width: 28px; left: 4px; bottom: 4px; background-color: white; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); border-radius: 50%; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); }
+        .switch-input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .switch-input:checked + .switch-slider { background-color: rgba(0, 255, 136, 0.4); }
+        .switch-input:checked + .switch-slider:before { transform: translateX(34px); background-color: #00ff88; }
+        .switch-labels { position: absolute; width: 100%; height: 100%; pointer-events: none; display: flex; justify-content: space-between; align-items: center; padding: 0 8px; }
+        .switch-labels span { font-size: 10px; font-weight: 700; color: white; text-transform: uppercase; }
+        .main { display: flex; flex-direction: row; height: 100vh; background: #1a1a2e; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .content { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; }
+        .canvas { position: relative; background: #0f0f1a; border: 2px solid #667eea; border-radius: 10px; box-shadow: 0 0 30px rgba(102, 126, 234, 0.3); }
+        canvas { display: block; }
+        .graph { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .point { position: absolute; width: 14px; height: 14px; background: #ff6b6b; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 15px rgba(255, 107, 107, 0.6); font-size: 10px; color: white; text-align: center; white-space: nowrap; }
+        .data { width: 300px; background: #16213e; padding: 30px 20px; color: white; transition: all 0.3s ease; overflow-y: auto; }
+        .data.hiden { width: 0; padding: 0; overflow: hidden; }
+        .data p { margin-bottom: 20px; }
+        .data input[type="number"] { width: 100%; padding: 12px; margin-top: 8px; border: 2px solid #667eea; border-radius: 8px; background: #0f0f1a; color: white; font-size: 16px; }
+        .data input[type="number"]:focus { outline: none; border-color: #00d4ff; }
+        .data button { width: 100%; padding: 14px; margin-top: 10px; border: none; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .data button:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        .hideData { position: absolute; right: 300px; top: 50%; transform: translateY(-50%); width: 30px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; cursor: pointer; border-radius: 0 10px 10px 0; transition: all 0.3s ease; z-index: 100; }
+        .data.hiden ~ .hideData { right: 0; }
+        .hideData:hover { width: 35px; }
+    </style>
 </head>
-<body>
-<div class="main">
-	<div class="content">
-		<div class="canvas">
-			<canvas width="500" height="500" id="canvas"></canvas>
-		</div>
-		<div class="graph">
-			<div class="point" id="editPoint" style="left:0px; top: 0px;z-index: 1500"></div>
-		</div>
-		<label style="position: relative;top:-913px;left:-20px;color:yellow" id="labelY">Y</label>
-		<!-- <div style="position: relative;top:-932px;left:-8px;width: 0;  height: 0; 
-  border-left: 10px solid transparent;  border-right: 10px solid transparent;  
-  border-bottom: 10px solid black;" id="arrowY">
-  </div> -->
-  		<div style="position: relative;top:-60px;left:860px;width: 0;  height: 0;color:yellow;" 
-  id="labelX">X</div>
-<!-- border-left: 10px solid black;  border-top: 10px solid transparent;  
-  border-bottom: 10px solid transparent;"-->
-		
-	</div>
-	<div class="data">
-		<p>Введіть координату X:<input type="number" min="0" max="500" value="0"id="inputX"></p>
-		<p>Введіть координату Y:<input type="number" min="0" max="500" value="0"id="inputY"></p>
-		<p><button id="addButton">Додати точку </button></p>
-		<p><button id="addRandomButton">Додати випадкову точку </button></p>
-	</div>
-	<div class="hideData">-</div>
+<body class="old-active">
+<div class="version-switcher">
+    <span>Старий</span>
+    <div class="switch-container">
+        <input type="checkbox" id="versionSwitch" class="switch-input">
+        <label for="versionSwitch" class="switch-slider">
+            <div class="switch-labels"><span>OLD</span><span>NEW</span></div>
+        </label>
+    </div>
+    <span>Новий</span>
 </div>
-
+<div class="old-version">
+    <div class="main">
+        <div class="content">
+            <div class="canvas"><canvas width="500" height="500" id="canvas"></canvas></div>
+            <div class="graph"><div class="point" id="editPoint" style="left:0px; top: 0px;z-index: 1500"></div></div>
+            <label style="position: relative;top:-913px;left:-20px;color:yellow" id="labelY">Y</label>
+            <div style="position: relative;top:-60px;left:860px;width: 0; height: 0;color:yellow;" id="labelX">X</div>
+        </div>
+        <div class="data">
+            <p>Введіть координату X:<input type="number" min="0" max="500" value="0" id="inputX"></p>
+            <p>Введіть координату Y:<input type="number" min="0" max="500" value="0" id="inputY"></p>
+            <p><button id="addButton">Додати точку</button></p>
+            <p><button id="addRandomButton">Додати випадкову точку</button></p>
+        </div>
+        <div class="hideData">-</div>
+    </div>
+</div>
+<div class="new-version">
+    <div class="app-container">
+        <header class="header">
+            <div class="logo"><span class="logo-icon">📊</span><h1>Epic Data Visualizer Pro</h1></div>
+            <div class="header-controls">
+                <button class="theme-toggle" id="themeToggle"><span>🌙</span><span>Тема</span></button>
+                <button class="export-btn" id="exportBtn"><span>💾</span><span>Експорт</span></button>
+            </div>
+        </header>
+        <main class="main-content">
+            <aside class="sidebar" id="sidebar">
+                <button class="sidebar-toggle" id="sidebarToggle">‹</button>
+                <div class="sidebar-section">
+                    <h3>Додати точку</h3>
+                    <div class="input-group"><label>X:</label><input type="number" id="newInputX" min="0" max="500" value="0"></div>
+                    <div class="input-group"><label>Y:</label><input type="number" id="newInputY" min="0" max="500" value="0"></div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" id="newAddButton"><span>➕</span> Додати</button>
+                        <button class="btn btn-secondary" id="newRandomButton"><span>🎲</span> Випадково</button>
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <h3>Налаштування</h3>
+                    <div class="input-group"><label>Колір:</label><input type="color" id="lineColor" value="#00d4ff"></div>
+                    <div class="input-group"><label>Товщина:</label><input type="range" id="lineWidth" min="1" max="10" value="2"></div>
+                    <div class="toggle-group"><label><input type="checkbox" id="showGrid" checked> Показати сітку</label></div>
+                    <div class="toggle-group"><label><input type="checkbox" id="animateLines" checked> Анімація ліній</label></div>
+                </div>
+                <div class="sidebar-section">
+                    <h3>Тип графіка</h3>
+                    <div class="chart-types">
+                        <button class="chart-type-btn active" data-type="line"><span>📈</span><span>Лінійний</span></button>
+                        <button class="chart-type-btn" data-type="scatter"><span>⋅⋅⋅</span><span>Scatter</span></button>
+                        <button class="chart-type-btn" data-type="bar"><span>📊</span><span>Стовпчики</span></button>
+                        <button class="chart-type-btn" data-type="area"><span>📉</span><span>Area</span></button>
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <h3>Дії</h3>
+                    <div class="button-group">
+                        <button class="btn btn-warning" id="clearAllBtn"><span>🗑️</span> Очистити все</button>
+                        <button class="btn btn-danger" id="undoBtn"><span>↩️</span> Скасувати (Ctrl+Z)</button>
+                    </div>
+                </div>
+            </aside>
+            <div class="canvas-container">
+                <div class="canvas-wrapper">
+                    <canvas id="mainCanvas"></canvas>
+                    <div class="canvas-overlay">
+                        <div class="overlay-info"><div>Точок: <span id="pointsCount">0</span></div><div>Max: <span id="maxValue">500</span></div></div>
+                        <div class="axis-labels"><div class="axis-y">Y</div><div class="axis-x">X</div></div>
+                    </div>
+                </div>
+            </div>
+            <aside class="right-panel" id="rightPanel">
+                <button class="panel-toggle" id="panelToggle">›</button>
+                <div class="panel-section">
+                    <h3>Статистика</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item"><span class="stat-label">Мін X</span><span class="stat-value" id="minX">0</span></div>
+                        <div class="stat-item"><span class="stat-label">Макс X</span><span class="stat-value" id="maxX">0</span></div>
+                        <div class="stat-item"><span class="stat-label">Мін Y</span><span class="stat-value" id="minY">0</span></div>
+                        <div class="stat-item"><span class="stat-label">Макс Y</span><span class="stat-value" id="maxY">0</span></div>
+                        <div class="stat-item"><span class="stat-label">Сер. X</span><span class="stat-value" id="avgX">0</span></div>
+                        <div class="stat-item"><span class="stat-label">Сер. Y</span><span class="stat-value" id="avgY">0</span></div>
+                    </div>
+                </div>
+                <div class="panel-section">
+                    <h3>Точки (<span id="pointsListCount">0</span>)</h3>
+                    <div class="points-list" id="pointsList"><div class="empty-message">Немає точок</div></div>
+                </div>
+            </aside>
+        </main>
+    </div>
+    <div class="toast-container" id="toastContainer"></div>
+</div>
 <script src="script.js"></script>
+<script>
+(function() {
+    const versionSwitch = document.getElementById('versionSwitch');
+    const body = document.body;
+    versionSwitch.addEventListener('change', function() {
+        if (this.checked) {
+            body.classList.remove('old-active');
+            body.classList.add('new-active');
+            if (window.initNewVersion) window.initNewVersion();
+        } else {
+            body.classList.remove('new-active');
+            body.classList.add('old-active');
+        }
+    });
+})();
+</script>
 </body>
 </html>

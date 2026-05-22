@@ -161,3 +161,259 @@ var widthGraph=500;
 	arrowsPositions();
 	canvasResize();
 })();
+// =====================================================
+// НОВА ВЕРСІЯ - Epic Data Visualizer Pro
+// =====================================================
+window.initNewVersion = function() {
+(function(){
+let newPoints = [];
+let historyStack = [];
+let maxNumber = 500;
+let chartType = 'line';
+let lineColor = '#00d4ff';
+let lineWidth = 2;
+let showGrid = true;
+let animateLines = true;
+
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas ? canvas.getContext('2d') : null;
+if (!ctx) return;
+
+const newInputX = document.getElementById('newInputX');
+const newInputY = document.getElementById('newInputY');
+const newAddButton = document.getElementById('newAddButton');
+const newRandomButton = document.getElementById('newRandomButton');
+const themeToggle = document.getElementById('themeToggle');
+const exportBtn = document.getElementById('exportBtn');
+const sidebarToggle = document.getElementById('sidebarToggle');
+const panelToggle = document.getElementById('panelToggle');
+const sidebar = document.getElementById('sidebar');
+const rightPanel = document.getElementById('rightPanel');
+const lineColorInput = document.getElementById('lineColor');
+const lineWidthInput = document.getElementById('lineWidth');
+const showGridInput = document.getElementById('showGrid');
+const clearAllBtn = document.getElementById('clearAllBtn');
+const undoBtn = document.getElementById('undoBtn');
+const pointsCountEl = document.getElementById('pointsCount');
+const maxValueEl = document.getElementById('maxValue');
+const minXEl = document.getElementById('minX');
+const maxXEl = document.getElementById('maxX');
+const minYEl = document.getElementById('minY');
+const maxYEl = document.getElementById('maxY');
+const avgXEl = document.getElementById('avgX');
+const avgYEl = document.getElementById('avgY');
+const pointsList = document.getElementById('pointsList');
+const pointsListCount = document.getElementById('pointsListCount');
+const toastContainer = document.getElementById('toastContainer');
+const chartTypeBtns = document.querySelectorAll('.chart-type-btn');
+
+if (!newInputX || !newInputY) return;
+
+function initCanvas() {
+const wrapper = document.querySelector('.canvas-wrapper');
+if (wrapper) {
+const size = Math.min(wrapper.offsetWidth, wrapper.offsetHeight);
+canvas.width = size * 2;
+canvas.height = size * 2;
+canvas.style.width = size + 'px';
+canvas.style.height = size + 'px';
+ctx.scale(2, 2);
+draw();
+}
+}
+
+function draw() {
+const size = canvas.width / 2;
+ctx.clearRect(0, 0, size, size);
+if (showGrid) {
+ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+ctx.lineWidth = 0.5;
+for (let i = 0; i <= 10; i++) {
+const pos = (i / 10) * size;
+ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, size); ctx.stroke();
+ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(size, pos); ctx.stroke();
+}
+}
+ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+ctx.lineWidth = 1;
+ctx.beginPath(); ctx.moveTo(0, size); ctx.lineTo(size, size); ctx.stroke();
+ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, size); ctx.stroke();
+if (newPoints.length === 0) return;
+ctx.strokeStyle = lineColor;
+ctx.lineWidth = lineWidth;
+ctx.fillStyle = lineColor;
+if (chartType === 'scatter') {
+newPoints.forEach(point => {
+const x = (point.X / maxNumber) * size;
+const y = size - (point.Y / maxNumber) * size;
+ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill();
+});
+} else if (chartType === 'bar') {
+const barWidth = size / Math.max(newPoints.length, 1);
+newPoints.forEach((point, i) => {
+const x = i * barWidth;
+const height = (point.Y / maxNumber) * size;
+const gradient = ctx.createLinearGradient(x, size, x, size - height);
+gradient.addColorStop(0, lineColor + '80');
+gradient.addColorStop(1, lineColor);
+ctx.fillStyle = gradient;
+ctx.fillRect(x + 2, size - height, barWidth - 4, height);
+});
+} else if (chartType === 'area') {
+ctx.beginPath(); ctx.moveTo(0, size);
+newPoints.forEach((point, i) => {
+const x = (point.X / maxNumber) * size;
+const y = size - (point.Y / maxNumber) * size;
+ctx.lineTo(x, y);
+});
+ctx.lineTo(size, size); ctx.closePath();
+const gradient = ctx.createLinearGradient(0, 0, 0, size);
+gradient.addColorStop(0, lineColor + '60');
+gradient.addColorStop(1, lineColor + '10');
+ctx.fillStyle = gradient; ctx.fill();
+ctx.strokeStyle = lineColor; ctx.stroke();
+} else {
+ctx.beginPath();
+newPoints.forEach((point, i) => {
+const x = (point.X / maxNumber) * size;
+const y = size - (point.Y / maxNumber) * size;
+if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+});
+ctx.stroke();
+newPoints.forEach(point => {
+const x = (point.X / maxNumber) * size;
+const y = size - (point.Y / maxNumber) * size;
+ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+});
+}
+}
+
+function addPoint() {
+const x = parseInt(newInputX.value) || 0;
+const y = parseInt(newInputY.value) || 0;
+if (x > maxNumber || y > maxNumber) {
+maxNumber = Math.max(x, y, maxNumber);
+showToast('Максимум збільшено до ' + maxNumber, 'warning');
+}
+historyStack.push([...newPoints]);
+newPoints.push({ X: x, Y: y });
+updateStats(); updatePointsList(); draw();
+showToast('Точку додано!', 'success');
+newInputX.value = 0; newInputY.value = 0; newInputX.focus();
+}
+
+function addRandomPoint() {
+newInputX.value = Math.round(Math.random() * maxNumber);
+newInputY.value = Math.round(Math.random() * maxNumber);
+addPoint();
+}
+
+function updateStats() {
+if (newPoints.length === 0) {
+minXEl.textContent = '0'; maxXEl.textContent = '0';
+minYEl.textContent = '0'; maxYEl.textContent = '0';
+avgXEl.textContent = '0'; avgYEl.textContent = '0';
+pointsCountEl.textContent = '0'; maxValueEl.textContent = maxNumber;
+return;
+}
+const xs = newPoints.map(p => p.X);
+const ys = newPoints.map(p => p.Y);
+minXEl.textContent = Math.min(...xs); maxXEl.textContent = Math.max(...xs);
+minYEl.textContent = Math.min(...ys); maxYEl.textContent = Math.max(...ys);
+avgXEl.textContent = (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(1);
+avgYEl.textContent = (ys.reduce((a, b) => a + b, 0) / ys.length).toFixed(1);
+pointsCountEl.textContent = newPoints.length; maxValueEl.textContent = maxNumber;
+}
+
+function updatePointsList() {
+pointsListCount.textContent = newPoints.length;
+if (newPoints.length === 0) { pointsList.innerHTML = '<div class="empty-message">Немає точок</div>'; return; }
+pointsList.innerHTML = '';
+newPoints.forEach((point, index) => {
+const item = document.createElement('div');
+item.className = 'point-item';
+item.innerHTML = '<span class="point-coords">(' + point.X + ', ' + point.Y + ')</span><button class="point-delete" data-index="' + index + '">x</button>';
+pointsList.appendChild(item);
+});
+pointsList.querySelectorAll('.point-delete').forEach(btn => {
+btn.addEventListener('click', (e) => {
+e.stopPropagation();
+const index = parseInt(btn.dataset.index);
+historyStack.push([...newPoints]);
+newPoints.splice(index, 1);
+updateStats(); updatePointsList(); draw();
+showToast('Точку видалено', 'warning');
+});
+});
+}
+
+function showToast(message, type) {
+type = type || 'success';
+const toast = document.createElement('div');
+toast.className = 'toast ' + type;
+toast.innerHTML = '<span>' + message + '</span>';
+toastContainer.appendChild(toast);
+setTimeout(() => { toast.style.animation = 'slideIn 0.3s ease reverse forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
+}
+
+function exportData() {
+if (newPoints.length === 0) { showToast('Немає даних для експорту', 'error'); return; }
+const csv = newPoints.map(p => p.X + ',' + p.Y).join('\n');
+const blob = new Blob([csv], { type: 'text/csv' });
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url; a.download = 'points.csv'; a.click();
+URL.revokeObjectURL(url);
+showToast('Дані експортовано!', 'success');
+}
+
+function clearAll() {
+if (newPoints.length === 0) return;
+historyStack.push([...newPoints]);
+newPoints = [];
+updateStats(); updatePointsList(); draw();
+showToast('Всі точки очищено', 'warning');
+}
+
+function undo() {
+if (historyStack.length === 0) { showToast('Немає що скасовувати', 'error'); return; }
+newPoints = historyStack.pop();
+updateStats(); updatePointsList(); draw();
+showToast('Скасовано', 'success');
+}
+
+function toggleTheme() {
+const currentTheme = document.documentElement.getAttribute('data-theme');
+const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+document.documentElement.setAttribute('data-theme', newTheme);
+themeToggle.querySelector('span:first-child').textContent = newTheme === 'light' ? '☀️' : '🌙';
+showToast('Тема: ' + (newTheme === 'light' ? 'Світла' : 'Темна'), 'success');
+}
+
+newAddButton.addEventListener('click', addPoint);
+newRandomButton.addEventListener('click', addRandomPoint);
+exportBtn.addEventListener('click', exportData);
+clearAllBtn.addEventListener('click', clearAll);
+undoBtn.addEventListener('click', undo);
+themeToggle.addEventListener('click', toggleTheme);
+lineColorInput.addEventListener('input', (e) => { lineColor = e.target.value; draw(); });
+lineWidthInput.addEventListener('input', (e) => { lineWidth = parseInt(e.target.value); draw(); });
+showGridInput.addEventListener('change', (e) => { showGrid = e.target.checked; draw(); });
+chartTypeBtns.forEach(btn => {
+btn.addEventListener('click', () => {
+chartTypeBtns.forEach(b => b.classList.remove('active'));
+btn.classList.add('active');
+chartType = btn.dataset.type;
+draw();
+showToast('Тип графіка: ' + btn.querySelector('span:last-child').textContent, 'success');
+});
+});
+sidebarToggle.addEventListener('click', () => { sidebar.classList.toggle('collapsed'); sidebarToggle.textContent = sidebar.classList.contains('collapsed') ? '›' : '‹'; });
+panelToggle.addEventListener('click', () => { rightPanel.classList.toggle('collapsed'); panelToggle.textContent = rightPanel.classList.contains('collapsed') ? '‹' : '›'; });
+newInputX.addEventListener('keydown', (e) => { if (e.keyCode === 13) { newInputY.focus(); newInputY.select(); } });
+newInputY.addEventListener('keydown', (e) => { if (e.keyCode === 13) addPoint(); });
+document.addEventListener('keydown', (e) => { if (e.ctrlKey && e.keyCode === 90) { e.preventDefault(); undo(); } });
+window.addEventListener('resize', () => { initCanvas(); });
+initCanvas(); updateStats();
+})();
+};
