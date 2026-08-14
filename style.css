@@ -41,6 +41,68 @@
     box-sizing: border-box;
 }
 
+/* ========== SHARED PATTERNS ========== */
+/* Side panels (left sidebar / right stats panel) */
+.sidebar,
+.right-panel {
+    background: var(--bg-secondary);
+    padding: 20px;
+    overflow-y: auto;
+    transition: transform 0.3s ease, width 0.3s ease;
+    position: relative;
+}
+
+.sidebar.collapsed,
+.right-panel.collapsed {
+    width: 0;
+    padding: 0;
+}
+
+/* Sections inside the side panels */
+.sidebar-section,
+.panel-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-section:last-child,
+.panel-section:last-child {
+    border-bottom: none;
+}
+
+.sidebar-section h3,
+.panel-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Rows listing a label/value pair */
+.stat-item,
+.point-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+/* Controls that lift on hover */
+.theme-toggle:hover,
+.export-btn:hover,
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-danger:hover,
+.btn-warning:hover,
+.chart-type-btn:hover {
+    transform: translateY(-2px);
+}
+
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: var(--bg-primary);
@@ -118,7 +180,6 @@ body {
 .export-btn:hover {
     background: var(--accent-primary);
     color: var(--bg-primary);
-    transform: translateY(-2px);
 }
 
 /* ========== MAIN CONTENT ========== */
@@ -131,37 +192,11 @@ body {
 /* ========== SIDEBAR ========== */
 .sidebar {
     width: var(--sidebar-width);
-    background: var(--bg-secondary);
     border-right: 1px solid var(--border-color);
-    padding: 20px;
-    overflow-y: auto;
-    transition: transform 0.3s ease, width 0.3s ease;
-    position: relative;
 }
 
 .sidebar.collapsed {
     transform: translateX(-100%);
-    width: 0;
-    padding: 0;
-}
-
-.sidebar-section {
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.sidebar-section:last-child {
-    border-bottom: none;
-}
-
-.sidebar-section h3 {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 15px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 .input-group {
@@ -267,7 +302,6 @@ body {
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
     box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
 }
 
@@ -278,7 +312,6 @@ body {
 
 .btn-secondary:hover {
     background: var(--border-color);
-    transform: translateY(-2px);
 }
 
 .btn-danger {
@@ -288,7 +321,6 @@ body {
 
 .btn-danger:hover {
     box-shadow: 0 5px 20px rgba(255, 71, 87, 0.4);
-    transform: translateY(-2px);
 }
 
 .btn-warning {
@@ -298,7 +330,6 @@ body {
 
 .btn-warning:hover {
     box-shadow: 0 5px 20px rgba(255, 170, 0, 0.4);
-    transform: translateY(-2px);
 }
 
 .chart-types {
@@ -329,7 +360,6 @@ body {
 
 .chart-type-btn:hover {
     border-color: var(--accent-primary);
-    transform: translateY(-2px);
 }
 
 .chart-type-btn.active {
@@ -448,52 +478,17 @@ body {
 /* ========== RIGHT PANEL ========== */
 .right-panel {
     width: var(--right-panel-width);
-    background: var(--bg-secondary);
     border-left: 1px solid var(--border-color);
-    padding: 20px;
-    overflow-y: auto;
-    transition: transform 0.3s ease, width 0.3s ease;
-    position: relative;
 }
 
 .right-panel.collapsed {
     transform: translateX(100%);
-    width: 0;
-    padding: 0;
-}
-
-.panel-section {
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.panel-section:last-child {
-    border-bottom: none;
-}
-
-.panel-section h3 {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 15px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 .stats-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 10px;
-}
-
-.stat-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 12px;
-    background: var(--bg-tertiary);
-    border-radius: 8px;
 }
 
 .stat-label {
@@ -520,12 +515,6 @@ body {
 }
 
 .point-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 12px;
-    background: var(--bg-tertiary);
-    border-radius: 8px;
     margin-bottom: 8px;
     cursor: pointer;
     transition: all 0.3s ease;

@@ -4,6 +4,7 @@ var points=[];
 var maxNumber=500;
 var widthGraph=500;
 (function(){
+	var U=window.GraphUtils;
 	var body=document.body;
 	var canvas=document.getElementById('canvas');
 	var ctx = canvas.getContext("2d");
@@ -17,34 +18,15 @@ var widthGraph=500;
 	var button=document.getElementById('addButton');
 	var randomButton=document.getElementById('addRandomButton');
 	var hideData=document.getElementsByClassName('hideData')[0];
-	hideData.addEventListener('click',toggleHiden);
+	U.bindToggle(hideData,data,'hiden','+','-');
 	window.addEventListener('resize',canvasResize);
 	inputX.addEventListener('input',editPointMove);
 	inputY.addEventListener('input',editPointMove);
 	button.addEventListener('click',addPoint);
 	randomButton.addEventListener('click',addRandomPoint);
-	inputX.addEventListener('click',function(){this.select();});
-	inputY.addEventListener('click',function(){this.select();});
-	inputX.addEventListener('keydown',function(e){
-		if(e.keyCode==13){
-			inputY.focus();
-			inputY.select();
-		}
-	});
-	inputY.addEventListener('keydown',function(e){
-		if(e.keyCode==13){
-			addPoint()
-		}
-	});
-	function toggleHiden(){
-		data.classList.toggle('hiden');
-		if(hideData.innerHTML=='-'){
-			hideData.innerHTML='+';
-		}
-		else{
-			hideData.innerHTML='-';
-		}
-	}
+	U.selectOnClick(inputX);
+	U.selectOnClick(inputY);
+	U.bindCoordinateInputs(inputX,inputY,addPoint);
 	function canvasResize(){
 		if( window.innerHeight<window.innerWidth ){
 			content.style.width=window.innerHeight-60+"px";
@@ -60,33 +42,31 @@ var widthGraph=500;
 		editPointMove();
 		arrowsPositions();
 	}
+	function canvasWidth(){
+		return U.elementWidth('.canvas');
+	}
 	function editPointMove(){
-		var width=document.getElementsByClassName('canvas')[0].offsetWidth;
-		editPoint.style.left=parseInt(inputX.value)*(width/maxNumber)-1+"px";
-		editPoint.style.top=-parseInt(inputY.value)*(width/maxNumber)-12+"px";
+		var width=canvasWidth();
+		editPoint.style=U.markerStyle(inputX.value,inputY.value,width,maxNumber);
+		editPoint.style.zIndex=1500;
 		editPoint.innerHTML='<br>'+inputX.value+':'+inputY.value;
 	}
+	function growMaxNumber(){
+		var biggest=Math.max(parseInt(inputX.value),parseInt(inputY.value));
+		if(biggest>maxNumber){
+			maxNumber=biggest;
+			inputX.max=maxNumber;
+			inputY.max=maxNumber;
+			redrawPoint();
+		}
+	}
 	function addPoint(){
-		if(parseInt(inputX.value)>maxNumber) {
-			maxNumber=inputX.value;
-			inputX.max=maxNumber;
-			inputY.max=maxNumber;
-			redrawPoint();
-		}
-		if(parseInt(inputY.value)>maxNumber) {
-			maxNumber=inputY.value;
-			inputX.max=maxNumber;
-			inputY.max=maxNumber;
-			redrawPoint();
-		}
+		growMaxNumber();
 		points.push({X:inputX.value,Y:inputY.value});
 		var div=document.createElement('div');
 		div.className='point';
 		div.title=inputX.value+' : '+inputY.value;
-		var width=document.getElementsByClassName('canvas')[0].offsetWidth;
-		var tempLeft=inputX.value*(width/maxNumber);
-		var tempTop=inputY.value*(width/maxNumber);
-		div.style='left:'+(+tempLeft-1)+'px; top: '+(-tempTop-12)+'px;';
+		div.style=U.markerStyle(inputX.value,inputY.value,canvasWidth(),maxNumber);
 		graph.appendChild(div);
 		editPointMove();
 		inputX.focus();
@@ -94,60 +74,46 @@ var widthGraph=500;
 		drawLine();
 	}
 	function addRandomPoint(){
-		var randomeX=Math.round(Math.random()*maxNumber);
-		var randomeY=Math.round(Math.random()*maxNumber);
-		inputX.value=randomeX;
-		inputY.value=randomeY;
+		inputX.value=U.randomCoordinate(maxNumber);
+		inputY.value=U.randomCoordinate(maxNumber);
 		editPointMove();
 		addPoint();
 	}
+	function coordsOf(div){
+		var title=div.title.split(' : ');
+		return {X:parseInt(title[0]),Y:parseInt(title[1])};
+	}
+	function connect(from,to,size){
+		U.segment(ctx,
+			U.projectX(from.X,size,maxNumber),U.projectY(from.Y,size,maxNumber),
+			U.projectX(to.X,size,maxNumber),U.projectY(to.Y,size,maxNumber));
+	}
 	function drawLine(){
 		if(points.length>1){
-			var width=ctx.canvas.width;
 			ctx.beginPath();
-			ctx.strokeStyle='lightblue';
-			ctx.lineWidth=1;
-			var width=ctx.canvas.width;
-			var x1=points[points.length-2].X*(width/maxNumber);
-			var y1=width-points[points.length-2].Y*(width/maxNumber);
-			var x2=points[points.length-1].X*(width/maxNumber);
-			var y2=width-points[points.length-1].Y*(width/maxNumber);
-		    ctx.moveTo(x1,y1);
-		    ctx.lineTo(x2,y2);
-		    ctx.stroke();
+			U.setStroke(ctx,'lightblue',1);
+			connect(points[points.length-2],points[points.length-1],ctx.canvas.width);
+			ctx.stroke();
 		}
 	}
 	function redrawPoint(){
 		var tempPoint=document.getElementsByClassName('point');
-		var width=document.getElementsByClassName('canvas')[0].offsetWidth;
+		var width=canvasWidth();
 		ctx.clearRect(0, 0, width, width);
 		ctx.beginPath();
-		ctx.strokeStyle='lightblue';
-		ctx.lineWidth=1;
+		U.setStroke(ctx,'lightblue',1);
 		for (var i = 0; i < tempPoint.length; i++) {
 			var div=tempPoint[i];
-			var tempTitle=div.title.split(' : ');
-			var tempLeft=parseInt(tempTitle[0])*(width/maxNumber);
-			var tempTop=parseInt(tempTitle[1])*(width/maxNumber);
-			div.style='left:'+(+tempLeft-1)+'px; top: '+(-tempTop-12)+'px;';
+			var coords=coordsOf(div);
+			div.style=U.markerStyle(coords.X,coords.Y,width,maxNumber);
 			if(i>1){
-				var div2=tempPoint[i-1];
-				var tempTitle2=div2.title.split(' : ');
-				var ctxWidth=ctx.canvas.width;
-				var tempLeft2=parseInt(tempTitle2[0])*(ctxWidth/maxNumber);
-				var tempTop2=parseInt(tempTitle2[1])*(ctxWidth/maxNumber);
-				var x1=tempLeft2;
-				var y1=ctxWidth-tempTop2;
-				var x2=parseInt(tempTitle[0])*(ctxWidth/maxNumber);;
-				var y2=ctxWidth-parseInt(tempTitle[1])*(ctxWidth/maxNumber);
-			    ctx.moveTo(x1,y1);
-			    ctx.lineTo(x2,y2);
+				connect(coordsOf(tempPoint[i-1]),coords,ctx.canvas.width);
 			}
 		}
 		ctx.stroke();
 	}
 	function arrowsPositions(){
-		var width=document.getElementsByClassName('canvas')[0].offsetWidth;
+		var width=canvasWidth();
 		var labelY=document.getElementById('labelY');
 		labelY.style.top=-width-47+"px";
 		// var arrowY=document.getElementById('arrowY');
@@ -166,6 +132,7 @@ var widthGraph=500;
 // =====================================================
 window.initNewVersion = function() {
 (function(){
+const U = window.GraphUtils;
 let newPoints = [];
 let historyStack = [];
 let maxNumber = 500;
@@ -222,68 +189,66 @@ draw();
 }
 }
 
+function project(point, size) {
+return { x: U.projectX(point.X, size, maxNumber), y: U.projectY(point.Y, size, maxNumber) };
+}
+
+function drawGrid(size) {
+U.setStroke(ctx, 'rgba(255, 255, 255, 0.1)', 0.5);
+for (let i = 0; i <= 10; i++) {
+const pos = (i / 10) * size;
+U.strokeSegment(ctx, pos, 0, pos, size);
+U.strokeSegment(ctx, 0, pos, size, pos);
+}
+}
+
+function drawAxes(size) {
+U.setStroke(ctx, 'rgba(255, 255, 255, 0.3)', 1);
+U.strokeSegment(ctx, 0, size, size, size);
+U.strokeSegment(ctx, 0, 0, 0, size);
+}
+
 function draw() {
 const size = canvas.width / 2;
 ctx.clearRect(0, 0, size, size);
-if (showGrid) {
-ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-ctx.lineWidth = 0.5;
-for (let i = 0; i <= 10; i++) {
-const pos = (i / 10) * size;
-ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, size); ctx.stroke();
-ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(size, pos); ctx.stroke();
-}
-}
-ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-ctx.lineWidth = 1;
-ctx.beginPath(); ctx.moveTo(0, size); ctx.lineTo(size, size); ctx.stroke();
-ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, size); ctx.stroke();
+if (showGrid) drawGrid(size);
+drawAxes(size);
 if (newPoints.length === 0) return;
-ctx.strokeStyle = lineColor;
-ctx.lineWidth = lineWidth;
+U.setStroke(ctx, lineColor, lineWidth);
 ctx.fillStyle = lineColor;
 if (chartType === 'scatter') {
 newPoints.forEach(point => {
-const x = (point.X / maxNumber) * size;
-const y = size - (point.Y / maxNumber) * size;
-ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill();
+const { x, y } = project(point, size);
+U.fillCircle(ctx, x, y, 5);
 });
 } else if (chartType === 'bar') {
 const barWidth = size / Math.max(newPoints.length, 1);
 newPoints.forEach((point, i) => {
 const x = i * barWidth;
 const height = (point.Y / maxNumber) * size;
-const gradient = ctx.createLinearGradient(x, size, x, size - height);
-gradient.addColorStop(0, lineColor + '80');
-gradient.addColorStop(1, lineColor);
-ctx.fillStyle = gradient;
+ctx.fillStyle = U.verticalGradient(ctx, lineColor, size, size - height, ['80', '']);
 ctx.fillRect(x + 2, size - height, barWidth - 4, height);
 });
 } else if (chartType === 'area') {
 ctx.beginPath(); ctx.moveTo(0, size);
-newPoints.forEach((point, i) => {
-const x = (point.X / maxNumber) * size;
-const y = size - (point.Y / maxNumber) * size;
+newPoints.forEach(point => {
+const { x, y } = project(point, size);
 ctx.lineTo(x, y);
 });
 ctx.lineTo(size, size); ctx.closePath();
-const gradient = ctx.createLinearGradient(0, 0, 0, size);
-gradient.addColorStop(0, lineColor + '60');
-gradient.addColorStop(1, lineColor + '10');
-ctx.fillStyle = gradient; ctx.fill();
+ctx.fillStyle = U.verticalGradient(ctx, lineColor, 0, size, ['60', '10']);
+ctx.fill();
 ctx.strokeStyle = lineColor; ctx.stroke();
 } else {
 ctx.beginPath();
 newPoints.forEach((point, i) => {
-const x = (point.X / maxNumber) * size;
-const y = size - (point.Y / maxNumber) * size;
+const { x, y } = project(point, size);
 if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
 });
 ctx.stroke();
 newPoints.forEach(point => {
-const x = (point.X / maxNumber) * size;
-const y = size - (point.Y / maxNumber) * size;
-ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+const { x, y } = project(point, size);
+U.fillCircle(ctx, x, y, 4);
 });
 }
 }
@@ -295,17 +260,25 @@ if (x > maxNumber || y > maxNumber) {
 maxNumber = Math.max(x, y, maxNumber);
 showToast('Максимум збільшено до ' + maxNumber, 'warning');
 }
-historyStack.push([...newPoints]);
+saveHistory();
 newPoints.push({ X: x, Y: y });
-updateStats(); updatePointsList(); draw();
+refresh();
 showToast('Точку додано!', 'success');
 newInputX.value = 0; newInputY.value = 0; newInputX.focus();
 }
 
 function addRandomPoint() {
-newInputX.value = Math.round(Math.random() * maxNumber);
-newInputY.value = Math.round(Math.random() * maxNumber);
+newInputX.value = U.randomCoordinate(maxNumber);
+newInputY.value = U.randomCoordinate(maxNumber);
 addPoint();
+}
+
+function saveHistory() {
+historyStack.push([...newPoints]);
+}
+
+function refresh() {
+updateStats(); updatePointsList(); draw();
 }
 
 function updateStats() {
@@ -320,8 +293,8 @@ const xs = newPoints.map(p => p.X);
 const ys = newPoints.map(p => p.Y);
 minXEl.textContent = Math.min(...xs); maxXEl.textContent = Math.max(...xs);
 minYEl.textContent = Math.min(...ys); maxYEl.textContent = Math.max(...ys);
-avgXEl.textContent = (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(1);
-avgYEl.textContent = (ys.reduce((a, b) => a + b, 0) / ys.length).toFixed(1);
+avgXEl.textContent = U.average(xs).toFixed(1);
+avgYEl.textContent = U.average(ys).toFixed(1);
 pointsCountEl.textContent = newPoints.length; maxValueEl.textContent = maxNumber;
 }
 
@@ -339,9 +312,9 @@ pointsList.querySelectorAll('.point-delete').forEach(btn => {
 btn.addEventListener('click', (e) => {
 e.stopPropagation();
 const index = parseInt(btn.dataset.index);
-historyStack.push([...newPoints]);
+saveHistory();
 newPoints.splice(index, 1);
-updateStats(); updatePointsList(); draw();
+refresh();
 showToast('Точку видалено', 'warning');
 });
 });
@@ -369,16 +342,16 @@ showToast('Дані експортовано!', 'success');
 
 function clearAll() {
 if (newPoints.length === 0) return;
-historyStack.push([...newPoints]);
+saveHistory();
 newPoints = [];
-updateStats(); updatePointsList(); draw();
+refresh();
 showToast('Всі точки очищено', 'warning');
 }
 
 function undo() {
 if (historyStack.length === 0) { showToast('Немає що скасовувати', 'error'); return; }
 newPoints = historyStack.pop();
-updateStats(); updatePointsList(); draw();
+refresh();
 showToast('Скасовано', 'success');
 }
 
@@ -408,10 +381,9 @@ draw();
 showToast('Тип графіка: ' + btn.querySelector('span:last-child').textContent, 'success');
 });
 });
-sidebarToggle.addEventListener('click', () => { sidebar.classList.toggle('collapsed'); sidebarToggle.textContent = sidebar.classList.contains('collapsed') ? '›' : '‹'; });
-panelToggle.addEventListener('click', () => { rightPanel.classList.toggle('collapsed'); panelToggle.textContent = rightPanel.classList.contains('collapsed') ? '‹' : '›'; });
-newInputX.addEventListener('keydown', (e) => { if (e.keyCode === 13) { newInputY.focus(); newInputY.select(); } });
-newInputY.addEventListener('keydown', (e) => { if (e.keyCode === 13) addPoint(); });
+U.bindToggle(sidebarToggle, sidebar, 'collapsed', '›', '‹');
+U.bindToggle(panelToggle, rightPanel, 'collapsed', '‹', '›');
+U.bindCoordinateInputs(newInputX, newInputY, addPoint);
 document.addEventListener('keydown', (e) => { if (e.ctrlKey && e.keyCode === 90) { e.preventDefault(); undo(); } });
 window.addEventListener('resize', () => { initCanvas(); });
 initCanvas(); updateStats();
