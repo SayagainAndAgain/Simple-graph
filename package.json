@@ -1,0 +1,38 @@
+{
+  "name": "simple-graph",
+  "version": "1.0.0",
+  "description": "Epic Data Visualizer Pro",
+  "private": true,
+  "scripts": {
+    "test": "jest",
+    "test:coverage": "jest --coverage"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "setupFiles": [
+      "<rootDir>/tests/setup.js"
+    ],
+    "collectCoverageFrom": [
+      "script.js"
+    ],
+    "coverageReporters": [
+      "text",
+      "lcov"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "statements": 95,
+        "branches": 90,
+        "functions": 95,
+        "lines": 95
+      }
+    }
+  },
+  "devDependencies": {
+    "jest": "30.4.2",
+    "jest-environment-jsdom": "30.4.1"
+  }
+}

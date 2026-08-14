@@ -55,6 +55,17 @@ python -m http.server 8000
 # Відкрийте http://localhost:8000
 ```
 
+## 🧪 Тести
+
+```bash
+npm install
+npm test              # unit-тести (Jest + jsdom)
+npm run test:coverage # звіт покриття для script.js
+```
+
+Тести рендерять реальну розмітку з `index.html` у jsdom і перевіряють обидві
+версії зі `script.js` (стару IIFE та `window.initNewVersion`).
+
 ## 📝 Використання
 
 1. Введіть координати X та Y
