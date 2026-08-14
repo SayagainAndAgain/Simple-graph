@@ -148,18 +148,29 @@
 <script src="script.js"></script>
 <script>
 (function() {
-    const versionSwitch = document.getElementById('versionSwitch');
-    const body = document.body;
-    versionSwitch.addEventListener('change', function() {
-        if (this.checked) {
-            body.classList.remove('old-active');
-            body.classList.add('new-active');
-            if (window.initNewVersion) window.initNewVersion();
+    try {
+        const versionSwitch = requireById('versionSwitch');
+        const body = document.body;
+        versionSwitch.addEventListener('change', guard('Не вдалося перемкнути версію', function() {
+            if (this.checked) {
+                body.classList.remove('old-active');
+                body.classList.add('new-active');
+                if (typeof window.initNewVersion !== 'function') {
+                    throw new Error('Нова версія не завантажилась (script.js не виконався до кінця)');
+                }
+                window.initNewVersion();
+            } else {
+                body.classList.remove('new-active');
+                body.classList.add('old-active');
+            }
+        }));
+    } catch (error) {
+        if (typeof reportError === 'function') {
+            reportError('Не вдалося ініціалізувати перемикач версій', error);
         } else {
-            body.classList.remove('new-active');
-            body.classList.add('old-active');
+            console.error('[Simple-graph] Не вдалося ініціалізувати перемикач версій:', error);
         }
-    });
+    }
 })();
 </script>
 </body>
