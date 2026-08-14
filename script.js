@@ -3,6 +3,13 @@ var zeroY;
 var points=[];
 var maxNumber=500;
 var widthGraph=500;
+var MAX_ALLOWED=1000000;
+// Parses a user supplied coordinate into a finite integer within [0, MAX_ALLOWED].
+function readCoordinate(value){
+	var n=parseInt(value,10);
+	if(!isFinite(n)||isNaN(n)) return 0;
+	return Math.min(Math.max(n,0),MAX_ALLOWED);
+}
 (function(){
 	var body=document.body;
 	var canvas=document.getElementById('canvas');
@@ -38,12 +45,7 @@ var widthGraph=500;
 	});
 	function toggleHiden(){
 		data.classList.toggle('hiden');
-		if(hideData.innerHTML=='-'){
-			hideData.innerHTML='+';
-		}
-		else{
-			hideData.innerHTML='-';
-		}
+		hideData.textContent=hideData.textContent=='-'?'+':'-';
 	}
 	function canvasResize(){
 		if( window.innerHeight<window.innerWidth ){
@@ -62,31 +64,32 @@ var widthGraph=500;
 	}
 	function editPointMove(){
 		var width=document.getElementsByClassName('canvas')[0].offsetWidth;
-		editPoint.style.left=parseInt(inputX.value)*(width/maxNumber)-1+"px";
-		editPoint.style.top=-parseInt(inputY.value)*(width/maxNumber)-12+"px";
-		editPoint.innerHTML='<br>'+inputX.value+':'+inputY.value;
+		var x=readCoordinate(inputX.value);
+		var y=readCoordinate(inputY.value);
+		editPoint.style.left=x*(width/maxNumber)-1+"px";
+		editPoint.style.top=-y*(width/maxNumber)-12+"px";
+		editPoint.textContent='';
+		editPoint.appendChild(document.createElement('br'));
+		editPoint.appendChild(document.createTextNode(x+':'+y));
 	}
 	function addPoint(){
-		if(parseInt(inputX.value)>maxNumber) {
-			maxNumber=inputX.value;
+		var x=readCoordinate(inputX.value);
+		var y=readCoordinate(inputY.value);
+		if(x>maxNumber||y>maxNumber) {
+			maxNumber=Math.max(x,y);
 			inputX.max=maxNumber;
 			inputY.max=maxNumber;
 			redrawPoint();
 		}
-		if(parseInt(inputY.value)>maxNumber) {
-			maxNumber=inputY.value;
-			inputX.max=maxNumber;
-			inputY.max=maxNumber;
-			redrawPoint();
-		}
-		points.push({X:inputX.value,Y:inputY.value});
+		points.push({X:x,Y:y});
 		var div=document.createElement('div');
 		div.className='point';
-		div.title=inputX.value+' : '+inputY.value;
+		div.title=x+' : '+y;
 		var width=document.getElementsByClassName('canvas')[0].offsetWidth;
-		var tempLeft=inputX.value*(width/maxNumber);
-		var tempTop=inputY.value*(width/maxNumber);
-		div.style='left:'+(+tempLeft-1)+'px; top: '+(-tempTop-12)+'px;';
+		var tempLeft=x*(width/maxNumber);
+		var tempTop=y*(width/maxNumber);
+		div.style.left=(tempLeft-1)+'px';
+		div.style.top=(-tempTop-12)+'px';
 		graph.appendChild(div);
 		editPointMove();
 		inputX.focus();
@@ -127,19 +130,20 @@ var widthGraph=500;
 		for (var i = 0; i < tempPoint.length; i++) {
 			var div=tempPoint[i];
 			var tempTitle=div.title.split(' : ');
-			var tempLeft=parseInt(tempTitle[0])*(width/maxNumber);
-			var tempTop=parseInt(tempTitle[1])*(width/maxNumber);
-			div.style='left:'+(+tempLeft-1)+'px; top: '+(-tempTop-12)+'px;';
+			var tempLeft=readCoordinate(tempTitle[0])*(width/maxNumber);
+			var tempTop=readCoordinate(tempTitle[1])*(width/maxNumber);
+			div.style.left=(tempLeft-1)+'px';
+			div.style.top=(-tempTop-12)+'px';
 			if(i>1){
 				var div2=tempPoint[i-1];
 				var tempTitle2=div2.title.split(' : ');
 				var ctxWidth=ctx.canvas.width;
-				var tempLeft2=parseInt(tempTitle2[0])*(ctxWidth/maxNumber);
-				var tempTop2=parseInt(tempTitle2[1])*(ctxWidth/maxNumber);
+				var tempLeft2=readCoordinate(tempTitle2[0])*(ctxWidth/maxNumber);
+				var tempTop2=readCoordinate(tempTitle2[1])*(ctxWidth/maxNumber);
 				var x1=tempLeft2;
 				var y1=ctxWidth-tempTop2;
-				var x2=parseInt(tempTitle[0])*(ctxWidth/maxNumber);;
-				var y2=ctxWidth-parseInt(tempTitle[1])*(ctxWidth/maxNumber);
+				var x2=readCoordinate(tempTitle[0])*(ctxWidth/maxNumber);
+				var y2=ctxWidth-readCoordinate(tempTitle[1])*(ctxWidth/maxNumber);
 			    ctx.moveTo(x1,y1);
 			    ctx.lineTo(x2,y2);
 			}
@@ -289,8 +293,8 @@ ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
 }
 
 function addPoint() {
-const x = parseInt(newInputX.value) || 0;
-const y = parseInt(newInputY.value) || 0;
+const x = readCoordinate(newInputX.value);
+const y = readCoordinate(newInputY.value);
 if (x > maxNumber || y > maxNumber) {
 maxNumber = Math.max(x, y, maxNumber);
 showToast('Максимум збільшено до ' + maxNumber, 'warning');
@@ -327,12 +331,26 @@ pointsCountEl.textContent = newPoints.length; maxValueEl.textContent = maxNumber
 
 function updatePointsList() {
 pointsListCount.textContent = newPoints.length;
-if (newPoints.length === 0) { pointsList.innerHTML = '<div class="empty-message">Немає точок</div>'; return; }
-pointsList.innerHTML = '';
+pointsList.textContent = '';
+if (newPoints.length === 0) {
+const empty = document.createElement('div');
+empty.className = 'empty-message';
+empty.textContent = 'Немає точок';
+pointsList.appendChild(empty);
+return;
+}
 newPoints.forEach((point, index) => {
 const item = document.createElement('div');
 item.className = 'point-item';
-item.innerHTML = '<span class="point-coords">(' + point.X + ', ' + point.Y + ')</span><button class="point-delete" data-index="' + index + '">x</button>';
+const coords = document.createElement('span');
+coords.className = 'point-coords';
+coords.textContent = '(' + point.X + ', ' + point.Y + ')';
+const del = document.createElement('button');
+del.className = 'point-delete';
+del.dataset.index = index;
+del.textContent = 'x';
+item.appendChild(coords);
+item.appendChild(del);
 pointsList.appendChild(item);
 });
 pointsList.querySelectorAll('.point-delete').forEach(btn => {
@@ -351,7 +369,9 @@ function showToast(message, type) {
 type = type || 'success';
 const toast = document.createElement('div');
 toast.className = 'toast ' + type;
-toast.innerHTML = '<span>' + message + '</span>';
+const text = document.createElement('span');
+text.textContent = message;
+toast.appendChild(text);
 toastContainer.appendChild(toast);
 setTimeout(() => { toast.style.animation = 'slideIn 0.3s ease reverse forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
 }
@@ -397,7 +417,7 @@ clearAllBtn.addEventListener('click', clearAll);
 undoBtn.addEventListener('click', undo);
 themeToggle.addEventListener('click', toggleTheme);
 lineColorInput.addEventListener('input', (e) => { lineColor = e.target.value; draw(); });
-lineWidthInput.addEventListener('input', (e) => { lineWidth = parseInt(e.target.value); draw(); });
+lineWidthInput.addEventListener('input', (e) => { lineWidth = Math.min(Math.max(parseInt(e.target.value, 10) || 1, 1), 10); draw(); });
 showGridInput.addEventListener('change', (e) => { showGrid = e.target.checked; draw(); });
 chartTypeBtns.forEach(btn => {
 btn.addEventListener('click', () => {
