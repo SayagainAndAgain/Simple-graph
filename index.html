@@ -2,6 +2,8 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+    <meta name="referrer" content="no-referrer">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Графік точок - Старий/Новий варіант</title>
     <link rel="stylesheet" href="style.css">
@@ -146,21 +148,6 @@
     <div class="toast-container" id="toastContainer"></div>
 </div>
 <script src="script.js"></script>
-<script>
-(function() {
-    const versionSwitch = document.getElementById('versionSwitch');
-    const body = document.body;
-    versionSwitch.addEventListener('change', function() {
-        if (this.checked) {
-            body.classList.remove('old-active');
-            body.classList.add('new-active');
-            if (window.initNewVersion) window.initNewVersion();
-        } else {
-            body.classList.remove('new-active');
-            body.classList.add('old-active');
-        }
-    });
-})();
-</script>
+<script src="version-switch.js"></script>
 </body>
 </html>
